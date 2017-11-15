@@ -142,11 +142,11 @@ class InsecureCipherDetectionHandler(DataHandler):
                 (", ".join(integ_ciphers)))
 
         # Check for export ciphers since they're horribly weak
-        export_ciphers = [str(c) for c in client_hello.ciphers if "EXPORT" in str(c)]
-        if export_ciphers:
-            self._handle_bad_ciphers(export_ciphers,
-                "Client enabled export TLS/SSL cipher suites %s" %
-                (", ".join(export_ciphers)))
+        # export_ciphers = [str(c) for c in client_hello.ciphers if "EXPORT" in str(c)]
+        # if export_ciphers:
+        #     self._handle_bad_ciphers(export_ciphers,
+        #         "Client enabled export TLS/SSL cipher suites %s" %
+        #         (", ".join(export_ciphers)))
 
         # Check for des/3des ciphers since they're < 128 bits
         # des_ciphers = [str(c) for c in client_hello.ciphers if ("DES" in str(c)) or ("3DES" in str(c))]
@@ -157,11 +157,11 @@ class InsecureCipherDetectionHandler(DataHandler):
 
         # Per rfc7465, RC4 ciphers should never be used in TLS
         # Disabling rc4 checking temporarily
-        # rc4_ciphers = [str(c) for c in client_hello.ciphers if "RC4" in str(c)]
-        # if rc4_ciphers:
-        #      self._handle_bad_ciphers(rc4_ciphers,
-        #          "Client enabled RC4 TLS/SSL cipher suites %s" %
-        #          (", ".join(rc4_ciphers)))
+        rc4_ciphers = [str(c) for c in client_hello.ciphers if "RC4" in str(c)]
+        if rc4_ciphers:
+             self._handle_bad_ciphers(rc4_ciphers,
+                 "Client enabled RC4 TLS/SSL cipher suites %s" %
+                 (", ".join(rc4_ciphers)))
 
         # Ensure client only supports ciphers from this list
          acceptable_ciphers = set([ "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_DHE_DSS_WITH_AES_128_GCM_SHA256", "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_DHE_DSS_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA", "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256", "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256", "TLS_DHE_RSA_WITH_AES_128_CBC_SHA", "TLS_DHE_RSA_WITH_AES_256_CBC_SHA", "TLS_DHE_DSS_WITH_AES_128_CBC_SHA256", "TLS_DHE_DSS_WITH_AES_256_CBC_SHA256", "TLS_DHE_DSS_WITH_AES_128_CBC_SHA", "TLS_DHE_DSS_WITH_AES_256_CBC_SHA", "TLS_RSA_WITH_AES_128_GCM_SHA256", "TLS_RSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_CBC_SHA256", "TLS_RSA_WITH_AES_256_CBC_SHA256", "TLS_RSA_WITH_AES_128_CBC_SHA", "TLS_RSA_WITH_AES_256_CBC_SHA" ])
@@ -169,10 +169,10 @@ class InsecureCipherDetectionHandler(DataHandler):
         # # ignore RI SCSV
         client_ciphers = set(map(str, client_hello.ciphers)) - set(["TLS_EMPTY_RENEGOTIATION_INFO_SCSV"])
         unacceptable_ciphers = client_ciphers - acceptable_ciphers
-        if len(unacceptable_ciphers) > 0:
-             self._handle_bad_ciphers(list(unacceptable_ciphers),
-                 "Client enabled unacceptable ciphers %s" %
-                 (", ".join(list(unacceptable_ciphers))))
+        # if len(unacceptable_ciphers) > 0:
+        #      self._handle_bad_ciphers(list(unacceptable_ciphers),
+        #          "Client enabled unacceptable ciphers %s" %
+        #          (", ".join(list(unacceptable_ciphers))))
 
         # # Check if client is missing supported cipher, e.g. DHE
          missing_ciphers = acceptable_ciphers - client_ciphers
