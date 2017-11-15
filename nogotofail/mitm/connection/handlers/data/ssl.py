@@ -149,11 +149,11 @@ class InsecureCipherDetectionHandler(DataHandler):
                 (", ".join(export_ciphers)))
 
         # Check for des/3des ciphers since they're < 128 bits
-        des_ciphers = [str(c) for c in client_hello.ciphers if ("DES" in str(c)) or ("3DES" in str(c))]
-        if des_ciphers:
-             self._handle_bad_ciphers(des_ciphers,
-                 "Client enabled DES TLS/SSL cipher suites %s" %
-                 (", ".join(des_ciphers)))
+        # des_ciphers = [str(c) for c in client_hello.ciphers if ("DES" in str(c)) or ("3DES" in str(c))]
+        # if des_ciphers:
+        #      self._handle_bad_ciphers(des_ciphers,
+        #          "Client enabled DES TLS/SSL cipher suites %s" %
+        #          (", ".join(des_ciphers)))
 
         # Per rfc7465, RC4 ciphers should never be used in TLS
         # Disabling rc4 checking temporarily
