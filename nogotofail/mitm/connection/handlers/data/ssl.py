@@ -20,6 +20,8 @@ from nogotofail.mitm.connection.handlers.data import DataHandler
 from nogotofail.mitm.connection.handlers.store import handler
 from nogotofail.mitm.event import connection
 from nogotofail.mitm.util import ssl2, tls, vuln
+from nogotofail.mitm import util
+from nogotofail.mitm.util.tls.types import HandshakeMessage
 
 class _TlsRecordHandler(DataHandler):
     """Base class for a handler that acts on TlsRecords in a Tls connection.
@@ -224,3 +226,57 @@ class ClientCompressionDetectionHandler(DataHandler):
                                                "Client enabled non-null compression methods %s" %
                                                  (", ".join(all_compression_methods)))
  
+@handler.passive(handlers)
+class NoForwardSecrecy(_TlsRecordHandler):
+    name = "noforwardsecrecy"
+    description = (
+        "Detects selected server cipher suites which don't support "
+        "Diffie-Hellman key exchange (DHE or ECDHE) i.e. in SERVER_HELLO "
+        "response")
+
+    def on_tls_response(self, record):
+        try:
+            self.log(logging.INFO, "NoForwardSecrecy::on_tls_response...")
+            for i, message in enumerate(record.messages):
+                # Check for Server Hello message
+                if (isinstance(message, tls.types.HandshakeMessage) and
+                        message.type == HandshakeMessage.TYPE.SERVER_HELLO):
+                    server_hello = message.obj
+                    selected_cipher = str(server_hello.cipher)
+                    _connection = self.connection
+                    destination = _connection.hostname if \
+                        _connection.hostname else _connection.server_addr
+                    debug_message = ["Selected cipher \"", selected_cipher,
+                            "\" for connection to \"", destination, "\""]
+                    self.log(logging.INFO, "".join(debug_message))
+                    """ Check if Ephemeral Diffie-Hellman key exchange is
+                        used in selected cipher """
+                    dh_key_strings = ["DHE", "ECDHE"]
+ 
+                    # Check if the selected cipher(s) contains any DH ciphers
+                    dh_ciphers = []
+                    for dh_string in dh_key_strings:
+                      if dh_string in selected_cipher:
+                        dh_ciphers.append(dh_string)
+
+                    if len(dh_ciphers) == 0:
+                        error_message = \
+                            ["Cipher suite key exhange technqiue doesn't ",
+                             "support forward secrecy. ",
+                             "Cipher suite - [", selected_cipher, "]"]
+                        self.log(logging.INFO, "".join(error_message))
+                        self.log_event(logging.INFO,
+                            connection.AttackEvent(
+                                self.connection, self.name, True, ""))
+                        self.connection.vuln_notify(
+                            util.vuln.VULN_NO_FORWARD_SECRECY)
+                    else:
+                        self.log_event(logging.INFO,
+                            connection.AttackEvent(
+                                self.connection, self.name, False, " Client negotiated ephemeral diffie-hellman cipher suite"))
+
+        except AttributeError:
+            # Where TLS record contains no messages ignore exception raised.
+            pass
+        return record.to_bytes()
+
